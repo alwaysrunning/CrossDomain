@@ -1,0 +1,84 @@
+# JS-Cross-domain
+
+js跨域是指通过js在不同域下面进行数据传输和通信。
+
+在js中，XMLHttpRequest只能是在同一个域下面才能请求到数据，而跨域之后就请求不到数据了，针对js跨域请求有以下几种方法解决：
+
+1. Jsonp
+
+原理是通过script标签引入一个js文件，当这个js文件完全加载之后，就会执行url参数中指定的回调函数，并且把所需的json数据
+
+作为参数传给回调函数，同时需要服务器端的配合
+
+a.html页面内容
+
+<script>
+
+   function do(jsonp){
+      
+     alert(jsonp)  // 请求回来的数据
+     
+   }
+   
+</script>
+
+<script scr="http://andy.com/data.php?callback=do"></script>
+
+http://andy.com/data.php页面
+
+$callback = $_GET['callback'];
+
+$data = array("a","b","c");
+
+echo $callback.'('.$data.')'
+
+
+
+2. window.name
+
+原理：window有一个name的属性，在一个窗口（window）的生命周期内，里面加载的所有页面都共享 window.name这个属性， 所有的页面对这个属性都有读写的权利
+
+a.html页面内容
+
+<script>
+  window.name="请求的json数据"
+</script>
+
+b.html页面内容
+
+<script>
+   function getData(){
+      var ifr = document.getElementById('ifr');
+      ifr.onload = function(){
+         var data = ifr.contentWindow.name;
+         alert(data)  // 获取请求到的数据
+      }
+   }
+</script>
+<body>
+<iframe id="ifr" src="http://andy.com/a.html" style=" display="none";" onload="getData()"></iframe>
+</body>
+
+
+3. postMessage
+
+原理：window.postMessage(message,targetOrigin)  方法是html5新引进的特性，可以使用它来向其它的window对象发送消息，无论这个window对象是属于同源或不同源
+
+http://andy.com/a.html
+
+<script>
+    function sendData(){
+       var ifr = document.getElementById('ifr');
+       var win = ifr.contentWindow
+       win.postMessage("请求的json数据",*)
+    }
+</script>
+<iframe id="ifr" src="http://andy.com/b.html" style=" display="none";" onload="sendData()"></iframe>
+
+http://andy.com/b.html
+<script>
+  window.onmessage = function(e){
+     e = e || event
+     alert(e.data)
+  }
+</script>
